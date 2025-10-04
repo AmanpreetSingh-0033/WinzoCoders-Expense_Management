@@ -26,7 +26,21 @@ export default function Signup() {
   const [isJoiningCompany, setIsJoiningCompany] = useState(false);
 
   useEffect(() => {
-    fetch("/api/countries").then((r) => r.json()).then((j) => setCountries(j)).catch(() => {});
+    fetch("/api/countries")
+      .then((r) => r.json())
+      .then((j) => {
+        // Ensure we have an array before setting countries
+        if (Array.isArray(j)) {
+          setCountries(j);
+        } else {
+          console.error("Countries API did not return an array:", j);
+          setCountries([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load countries:", err);
+        setCountries([]);
+      });
   }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -166,13 +180,19 @@ export default function Signup() {
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countries
-                    .sort((a, b) => a.name.common.localeCompare(b.name.common))
-                    .map((c) => (
-                      <SelectItem key={c.name.common} value={c.name.common}>
-                        {c.name.common}
-                      </SelectItem>
-                    ))}
+                  {Array.isArray(countries) && countries.length > 0 ? (
+                    countries
+                      .sort((a, b) => a.name.common.localeCompare(b.name.common))
+                      .map((c) => (
+                        <SelectItem key={c.name.common} value={c.name.common}>
+                          {c.name.common}
+                        </SelectItem>
+                      ))
+                  ) : (
+                    <SelectItem value="loading" disabled>
+                      Loading countries...
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">

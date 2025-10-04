@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showWorkflowDialog, setShowWorkflowDialog] = useState(false);
   const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "EMPLOYEE" as Role, managerId: "" });
-  const [workflowRules, setWorkflowRules] = useState(company?.rules || { percentage: 0.6, cfoOverride: true, hybrid: true });
+  const [workflowRules, setWorkflowRules] = useState(company?.rules || { percentage: 0.6, cfoOverride: true, hybrid: true, requireManagerApproval: true });
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
@@ -136,6 +136,37 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleOverride = async (expenseId: string, decision: "APPROVED" | "REJECTED") => {
+    const comment = window.prompt(
+      `Please provide a reason for ${decision === "APPROVED" ? "approving" : "rejecting"} this expense:`
+    );
+    
+    if (!comment || comment.trim().length === 0) {
+      toast.error("A comment is required for admin overrides");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/expenses/${expenseId}/override`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...headers },
+        body: JSON.stringify({ decision, comment: comment.trim() }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to override");
+      }
+
+      toast.success(
+        `Expense ${decision === "APPROVED" ? "approved" : "rejected"} via admin override`
+      );
+      loadExpenses();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to override expense");
+    }
+  };
+
   const stats = useMemo(() => {
     const total = expenses.length;
     const pending = expenses.filter(e => e.status === "PENDING").length;
@@ -215,6 +246,20 @@ export default function AdminDashboard() {
                   </div>
                   
                   <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="manager" className="text-base font-medium cursor-pointer">Require Manager Approval</Label>
+                        <p className="text-sm text-muted-foreground">Employee's manager must approve first (if assigned)</p>
+                      </div>
+                      <input 
+                        id="manager"
+                        type="checkbox" 
+                        checked={workflowRules.requireManagerApproval !== false} 
+                        onChange={(e) => setWorkflowRules({ ...workflowRules, requireManagerApproval: e.target.checked })} 
+                        className="h-5 w-5 rounded cursor-pointer"
+                      />
+                    </div>
+                    
                     <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                       <div className="space-y-0.5">
                         <Label htmlFor="cfo" className="text-base font-medium cursor-pointer">CFO Override</Label>
@@ -356,6 +401,115 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
+      {/* All Expenses with Override Actions */}
+      <Card className="shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            All Expenses ({expenses.length})
+          </CardTitle>
+          <CardDescription>View and override expense approvals</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {expenses.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No expenses submitted yet</p>
+            </div>
+          ) : (
+            <div className="rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">Employee</TableHead>
+                    <TableHead className="font-semibold">Description</TableHead>
+                    <TableHead className="font-semibold">Amount</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
+                    <TableHead className="font-semibold text-right">Override Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {expenses.map((expense) => {
+                    const employee = users.find(u => u.id === expense.employeeId);
+                    const isOverridden = expense.overriddenBy;
+                    
+                    return (
+                      <TableRow key={expense.id} className="hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-medium">
+                          {employee?.name || "Unknown"}
+                          {isOverridden && (
+                            <Badge variant="outline" className="ml-2 text-xs bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-700">
+                              Overridden
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{expense.description}</p>
+                            <p className="text-xs text-muted-foreground">{expense.category}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-semibold">
+                              {company?.currency} {Math.round(expense.convertedAmount).toLocaleString()}
+                            </p>
+                            {expense.currency !== company?.currency && (
+                              <p className="text-xs text-muted-foreground">
+                                {expense.currency} {expense.amount}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={
+                              expense.status === "APPROVED"
+                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                                : expense.status === "REJECTED"
+                                ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+                                : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                            }
+                          >
+                            {expense.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {expense.status === "PENDING" ? (
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                size="sm"
+                                onClick={() => handleOverride(expense.id, "APPROVED")}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Override Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleOverride(expense.id, "REJECTED")}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Override Reject
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              {isOverridden ? "Already overridden" : "Already processed"}
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* User Management & Company Info */}
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 shadow-sm hover:shadow-md transition-shadow">
@@ -383,18 +537,7 @@ export default function AdminDashboard() {
               console.log("Dialog onOpenChange:", open);
               setShowUserDialog(open);
             }}>
-              <DialogContent 
-                className="sm:max-w-[500px]" 
-                style={{ 
-                  backgroundColor: 'white',
-                  zIndex: 9999,
-                  position: 'fixed',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)'
-                }}
-                onOpenAutoFocus={(e) => console.log("Dialog auto focus", e)}
-              >
+              <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <UserPlus className="h-5 w-5" />
@@ -574,6 +717,12 @@ export default function AdminDashboard() {
                 Workflow Rules
               </h4>
               <div className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Manager Approval</span>
+                  <Badge variant={workflowRules.requireManagerApproval !== false ? "default" : "outline"}>
+                    {workflowRules.requireManagerApproval !== false ? "Required" : "Optional"}
+                  </Badge>
+                </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Approval Threshold</span>
                   <Badge variant="secondary">{Math.round((workflowRules.percentage || 0) * 100)}%</Badge>

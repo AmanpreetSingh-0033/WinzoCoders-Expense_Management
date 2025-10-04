@@ -49,6 +49,8 @@ export interface Expense {
   approvals: Approval[];
   approverSequence: string[]; // userIds in order
   currentApproverIndex: number;
+  overriddenBy?: string; // userId if admin overrode
+  overriddenAt?: string; // ISO timestamp of override
 }
 
 export interface Approval {
@@ -57,12 +59,14 @@ export interface Approval {
   decision: "APPROVED" | "REJECTED" | "PENDING";
   comment?: string;
   decidedAt?: string; // ISO
+  isOverride?: boolean; // true if admin override
 }
 
 export interface WorkflowRules {
   percentage?: number; // e.g. 0.6 for 60%
   cfoOverride?: boolean; // if true, CFO approval auto-approves overall
   hybrid?: boolean; // if true, percentage OR CFO override
+  requireManagerApproval?: boolean; // if true, manager must approve first
 }
 
 export interface AuthPayload {
@@ -95,4 +99,9 @@ export interface CreateExpenseInput {
 export interface DecisionInput {
   decision: "APPROVED" | "REJECTED";
   comment?: string;
+}
+
+export interface AdminOverrideInput {
+  decision: "APPROVED" | "REJECTED";
+  comment: string; // Required for admin overrides
 }

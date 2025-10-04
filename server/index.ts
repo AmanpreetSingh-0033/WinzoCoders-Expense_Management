@@ -5,7 +5,7 @@ import path from "path";
 import { handleDemo } from "./routes/demo";
 import { signup, login } from "./routes/auth";
 import { requireAuth, requireRole } from "./middleware/auth";
-import { listExpenses, createExpense, decide, listCountries, getRatesHandler } from "./routes/expenses";
+import { listExpenses, createExpense, decide, listCountries, getRatesHandler, adminOverride } from "./routes/expenses";
 import { listUsers, getUser, createUserHandler, updateUserHandler, deleteUserHandler, getCurrentUser } from "./routes/users";
 import { getWorkflowRules, updateWorkflowRules } from "./routes/workflows";
 import { upload } from "./utils/upload";
@@ -53,6 +53,7 @@ export function createServer() {
   app.get("/api/expenses", requireAuth, listExpenses);
   app.post("/api/expenses", requireAuth, upload.single("receipt"), createExpense);
   app.post("/api/expenses/:id/decision", requireAuth, decide);
+  app.post("/api/expenses/:id/override", requireAuth, requireRole(["ADMIN"]), adminOverride);
 
   return app;
 }

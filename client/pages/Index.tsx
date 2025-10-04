@@ -62,21 +62,82 @@ export default function Index() {
             <div className="mt-16 relative">
               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
               <div className="rounded-xl border bg-card shadow-2xl p-8 max-w-4xl mx-auto">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-3">
-                    <div className="h-4 bg-primary/20 rounded animate-pulse" />
-                    <div className="h-20 bg-muted rounded" />
-                    <div className="h-4 bg-muted/50 rounded w-3/4" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Submit Expense Card */}
+                  <div className="space-y-3 p-4 rounded-lg border bg-blue-50 dark:bg-blue-950/20">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="font-semibold">Submit Expense</div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Amount:</span>
+                        <span className="font-semibold">$125.00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Category:</span>
+                        <span>Meals</span>
+                      </div>
+                      <Badge className="w-full justify-center" variant="secondary">
+                        <Scan className="h-3 w-3 mr-1" />
+                        OCR Auto-filled
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                    <div className="h-4 bg-green-500/20 rounded animate-pulse delay-75" />
-                    <div className="h-20 bg-muted rounded" />
-                    <div className="h-4 bg-muted/50 rounded w-2/3" />
+
+                  {/* Approval Flow Card */}
+                  <div className="space-y-3 p-4 rounded-lg border bg-green-50 dark:bg-green-950/20">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-green-500 flex items-center justify-center">
+                        <GitBranch className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="font-semibold">Multi-Level</div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-muted-foreground">Manager</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-muted-foreground">Finance</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="h-4 w-4 rounded-full border-2 border-primary animate-pulse" />
+                        <span className="font-medium">CFO Review</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                    <div className="h-4 bg-blue-500/20 rounded animate-pulse delay-150" />
-                    <div className="h-20 bg-muted rounded" />
-                    <div className="h-4 bg-muted/50 rounded w-4/5" />
+
+                  {/* Analytics Card */}
+                  <div className="space-y-3 p-4 rounded-lg border bg-purple-50 dark:bg-purple-950/20">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-lg bg-purple-500 flex items-center justify-center">
+                        <BarChart3 className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="font-semibold">Analytics</div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">This Month:</span>
+                        <span className="font-semibold">$12,450</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Trend:</span>
+                        <Badge variant="default" className="bg-green-500">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          +12%
+                        </Badge>
+                      </div>
+                      <div className="h-12 bg-gradient-to-r from-purple-200 to-purple-400 dark:from-purple-800 dark:to-purple-600 rounded-md flex items-end justify-around p-1">
+                        <div className="w-1/5 bg-white dark:bg-gray-800 rounded h-1/3" />
+                        <div className="w-1/5 bg-white dark:bg-gray-800 rounded h-1/2" />
+                        <div className="w-1/5 bg-white dark:bg-gray-800 rounded h-2/3" />
+                        <div className="w-1/5 bg-white dark:bg-gray-800 rounded h-full" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

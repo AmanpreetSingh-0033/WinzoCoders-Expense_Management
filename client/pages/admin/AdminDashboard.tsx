@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "EMPLOYEE" as Role, managerId: "" });
   const [workflowRules, setWorkflowRules] = useState(company?.rules || { percentage: 0.6, cfoOverride: true, hybrid: true });
   const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const loadUsers = async () => {
     try {
@@ -48,6 +49,32 @@ export default function AdminDashboard() {
   useEffect(() => {
     console.log("User dialog state:", showUserDialog);
   }, [showUserDialog]);
+
+  const deleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingUserId(userId);
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: "DELETE",
+        headers: headers,
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to delete user");
+      }
+
+      toast.success(`User "${userName}" deleted successfully`);
+      loadUsers();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete user");
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
 
   const createUser = async () => {
     // Validation
@@ -455,6 +482,7 @@ export default function AdminDashboard() {
                     <TableHead className="font-semibold">Name</TableHead>
                     <TableHead className="font-semibold">Email</TableHead>
                     <TableHead className="font-semibold">Role</TableHead>
+                    <TableHead className="font-semibold text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -464,18 +492,38 @@ export default function AdminDashboard() {
                       <TableCell className="text-sm text-muted-foreground">{u.email}</TableCell>
                       <TableCell>
                         <Badge 
-                          variant="outline" 
                           className={
-                            u.role === "ADMIN" ? "bg-gray-100" :
-                            u.role === "CFO" ? "bg-red-100" :
-                            u.role === "DIRECTOR" ? "bg-orange-100" :
-                            u.role === "FINANCE" ? "bg-purple-100" :
-                            u.role === "MANAGER" ? "bg-blue-100" :
-                            "bg-green-100"
+                            u.role === "ADMIN" ? "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100" :
+                            u.role === "CFO" ? "bg-red-200 text-red-900 dark:bg-red-900 dark:text-red-100" :
+                            u.role === "DIRECTOR" ? "bg-orange-200 text-orange-900 dark:bg-orange-900 dark:text-orange-100" :
+                            u.role === "FINANCE" ? "bg-purple-200 text-purple-900 dark:bg-purple-900 dark:text-purple-100" :
+                            u.role === "MANAGER" ? "bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-100" :
+                            "bg-green-200 text-green-900 dark:bg-green-900 dark:text-green-100"
                           }
                         >
                           {u.role}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteUser(u.id, u.name)}
+                          disabled={deletingUserId === u.id}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          {deletingUserId === u.id ? (
+                            <>
+                              <Clock className="h-4 w-4 mr-1 animate-spin" />
+                              Deleting...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </>
+                          )}
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

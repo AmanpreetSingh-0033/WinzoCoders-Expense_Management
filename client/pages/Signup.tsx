@@ -17,6 +17,7 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [companyCode, setCompanyCode] = useState("");
   const [role, setRole] = useState<"MANAGER" | "EMPLOYEE">("EMPLOYEE");
   const [companyName, setCompanyName] = useState("");
@@ -45,9 +46,22 @@ export default function Signup() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate password match
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
+    
+    // Validate password length
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    
     setLoading(true);
     try {
-      // Call signup API (creates company + admin, but does NOT auto-login)
+      // Call signup API (creates company + admin)
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,20 +69,24 @@ export default function Signup() {
       });
       
       if (!res.ok) {
-        throw new Error("Signup failed");
+        const error = await res.json();
+        throw new Error(error.message || "Signup failed");
       }
       
+      const data = await res.json();
+      
+      // Auto-login using the signup function from useAuth
+      await signup(data);
+      
       // Show success message
-      toast.success("Your company and admin account have been created successfully. Please log in to continue.", {
-        duration: 5000,
+      toast.success("Welcome! Your company has been created successfully.", {
+        duration: 3000,
       });
       
-      // Redirect to login page (NOT auto-login)
-      setTimeout(() => {
-        nav("/login");
-      }, 2000);
-    } catch (e) {
-      toast.error("Failed to create company. Please try again.");
+      // Redirect to admin dashboard
+      nav("/dashboard");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to create company. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -90,7 +108,7 @@ export default function Signup() {
           <CardDescription>
             Register your company and create your admin account
             <br />
-            <span className="text-xs text-muted-foreground">After signup, you'll need to log in to access your dashboard</span>
+            <span className="text-xs text-muted-foreground">You'll be automatically logged in after signup</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -102,7 +120,7 @@ export default function Signup() {
                 <span className="font-semibold">Admin Account Creation</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Your account will be created as Admin. You'll need to log in after signup to access the dashboard.
+                Your account will be created as Admin with full access to all features.
               </p>
             </div>
 
@@ -138,21 +156,41 @@ export default function Signup() {
             </div>
 
             {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-              <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+                <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  Confirm Password
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+                <p className={`text-xs ${password && confirmPassword && password !== confirmPassword ? 'text-red-500' : 'text-muted-foreground'}`}>
+                  {password && confirmPassword && password !== confirmPassword ? 'Passwords do not match' : 'Re-enter your password'}
+                </p>
+              </div>
             </div>
 
             {/* Company Details */}

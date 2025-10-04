@@ -7,7 +7,7 @@ interface AuthContextValue {
   token: string | null;
   loading: boolean;
   login: (input: LoginInput) => Promise<AuthPayload>;
-  signup: (input: SignupInput) => Promise<AuthPayload>;
+  signup: (input: SignupInput | AuthPayload) => Promise<AuthPayload>;
   logout: () => void;
   hasRole: (...roles: Role[]) => boolean;
 }
@@ -42,7 +42,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return payload;
   }, []);
 
-  const signup = useCallback(async (input: SignupInput) => {
+  const signup = useCallback(async (input: SignupInput | AuthPayload) => {
+    // If input is already an AuthPayload (from Signup.tsx), just set it
+    if ('token' in input && 'user' in input && 'company' in input) {
+      const payload = input as AuthPayload;
+      setUser(payload.user);
+      setCompany(payload.company);
+      setToken(payload.token);
+      localStorage.setItem("auth", JSON.stringify(payload));
+      return payload;
+    }
+    
+    // Otherwise, make API call with SignupInput
     const res = await fetch("/api/auth/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
     if (!res.ok) throw new Error("Signup failed");
     const payload = (await res.json()) as AuthPayload;

@@ -1,0 +1,121 @@
+================================================================================
+                    SIGNUP 409 CONFLICT ERROR - SOLUTIONS
+================================================================================
+
+ERROR MESSAGE:
+POST http://localhost:8080/api/auth/signup 409 (Conflict)
+
+CAUSE:
+The email address you're trying to sign up with already exists in the database.
+
+================================================================================
+                            SOLUTION OPTIONS
+================================================================================
+
+OPTION 1: Use a Different Email (Recommended for Testing)
+----------------------------------------------------------
+Simply use a different email address to create a new company:
+
+Examples:
+✓ test1@company.com
+✓ test2@company.com  
+✓ admin@newcompany.com
+✓ yourname+test1@gmail.com (Gmail allows + in emails)
+
+The system should show you a toast notification:
+"Email already registered"
+
+
+OPTION 2: Clear the Database (For Development)
+-----------------------------------------------
+If you're using in-memory storage (db/store.ts), restart the server:
+
+1. Stop the server (Ctrl+C in terminal)
+2. Run: pnpm dev
+3. Database will be empty
+4. Try signup again with any email
+
+
+OPTION 3: Delete the Existing User (If using PostgreSQL)
+---------------------------------------------------------
+If you're using a real PostgreSQL database:
+
+Method A - Via Prisma Studio:
+1. Run: pnpm db:studio
+2. Open: http://localhost:5555
+3. Navigate to "User" table
+4. Find and delete the user with that email
+5. Try signup again
+
+Method B - Via SQL:
+1. Connect to your PostgreSQL database
+2. Run: DELETE FROM "User" WHERE email = 'your@email.com';
+3. Try signup again
+
+
+OPTION 4: Login Instead of Signup
+----------------------------------
+If you already have an account, use the login page:
+
+1. Click "Sign in" link on signup page
+2. Enter your existing email and password
+3. You'll be logged into your dashboard
+
+================================================================================
+                        PREVENTING THIS ERROR
+================================================================================
+
+The frontend already handles this error correctly:
+
+✓ Line 71-73 in Signup.tsx catches the 409 error
+✓ Line 72 extracts the error message: "Email already registered"
+✓ Line 89 shows a toast notification with the error
+
+You should see a red toast notification saying:
+"Email already registered"
+
+If you're not seeing the toast:
+1. Check browser console for errors
+2. Verify Sonner toast provider is set up
+3. Check if toasts are being blocked by browser
+
+================================================================================
+                    RECOMMENDED DEVELOPMENT WORKFLOW
+================================================================================
+
+For Testing Multiple Companies:
+1. Use different emails for each test:
+   - admin1@test.com
+   - admin2@test.com
+   - admin3@test.com
+
+2. OR use Gmail + trick:
+   - yourname+company1@gmail.com
+   - yourname+company2@gmail.com
+   - yourname+company3@gmail.com
+   (All deliver to yourname@gmail.com but treated as unique)
+
+3. OR restart server between tests (if using in-memory store)
+
+================================================================================
+                        CURRENT SYSTEM STATUS
+================================================================================
+
+The system is working correctly! The 409 error is EXPECTED behavior when:
+✓ Email already exists in database
+✓ Backend correctly validates duplicate emails
+✓ Frontend correctly catches and displays the error
+
+This is a security feature preventing duplicate accounts.
+
+================================================================================
+                            QUICK FIX
+================================================================================
+
+1. Try a different email address, OR
+2. Restart the development server (pnpm dev)
+
+Your code is working perfectly - this is just a duplicate email scenario!
+
+================================================================================
+

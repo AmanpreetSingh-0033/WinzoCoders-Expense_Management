@@ -1,146 +1,126 @@
-# ExpenseFlow - Quick Start Guide
+# Quick Start Guide - Expence Flow
 
-## Getting Started in 5 Minutes
+Get your expense management system running in 5 minutes!
 
-### Step 1: Run the Database Migration
-1. Open your Supabase project dashboard
-2. Go to SQL Editor
-3. Copy and paste the entire contents of `database-schema.sql`
-4. Click "Run" to create all tables and policies
+## Prerequisites
 
-### Step 2: Start the Application
+- Node.js 18+ installed
+- PostgreSQL database running
+- pnpm package manager (`npm install -g pnpm`)
+
+## Step 1: Install Dependencies
+
 ```bash
-npm install
-npm run dev
+pnpm install
 ```
 
-### Step 3: Create Your Account
-1. Open http://localhost:5173
-2. Click "Sign up"
-3. Fill in:
-   - Your name
-   - Email
-   - Company name
-   - Country (this sets your default currency)
-   - Password
-4. You're now an Admin!
+## Step 2: Configure Database
 
-### Step 4: Add Team Members
-1. Go to "Manage Users" (admin menu)
-2. Click "Add User"
-3. Create a Manager and an Employee
+1. Create a PostgreSQL database:
+```sql
+CREATE DATABASE expense_db;
+```
 
-### Step 5: Create an Approval Rule
-1. Go to "Approval Rules" (admin menu)
-2. Click "Add Rule"
-3. Example rule:
-   - Name: "Standard Approval"
-   - Amount threshold: 0 (applies to all expenses)
-   - Add yourself as an approver
-   - Leave percentage at 0 for now
-   - Click "Create Rule"
+2. Update `.env` file with your database credentials:
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/expense_db?schema=public"
+JWT_SECRET="your-secret-key-here"
+PORT=8080
+```
 
-### Step 6: Submit Your First Expense
-1. Log out and log in as the Employee
-2. Go to "Submit Expense"
-3. Fill in:
-   - Title: "Test Expense"
-   - Amount: 100
-   - Category: Travel
-   - Today's date
-4. Submit!
+## Step 3: Initialize Database
 
-### Step 7: Approve the Expense
-1. Log out and log in as Admin
-2. Go to "Approvals"
-3. You'll see the test expense
-4. Click "Review" → "Approve"
-5. Done!
+```bash
+# Generate Prisma client
+pnpm db:generate
 
-## Common Workflows
+# Push schema to database
+pnpm db:push
+```
 
-### Workflow 1: Manager Must Approve First
-When creating/editing an employee:
-1. Set their manager
-2. Check "Manager must approve first"
-3. Now all their expenses go to manager first
+## Step 4: Start Development Server
 
-### Workflow 2: Percentage-Based Approval
-Create a rule with:
-- Percentage threshold: 60
-- Add 3 approvers in sequence
-- When 2 out of 3 approve (60%+), expense auto-approves
+```bash
+pnpm dev
+```
 
-### Workflow 3: CFO Auto-Approval
-Create a rule with:
-- Add specific approver (CFO user ID)
-- When CFO approves, expense auto-approves regardless of others
+Visit `http://localhost:8080` in your browser.
 
-### Workflow 4: Hybrid Rule
-Create a rule with:
-- Percentage threshold: 60
-- Specific approver: CFO
-- Check "Hybrid Rule"
-- Now EITHER 60% approval OR CFO approval triggers auto-approval
+## Step 5: Create Your Company
 
-## Testing Checklist
+1. Click "Get Started" on the homepage
+2. Fill in the signup form:
+   - **Your Name**: John Doe
+   - **Company Name**: Acme Inc
+   - **Email**: admin@acme.com
+   - **Password**: (choose a secure password)
+   - **Country**: United States (currency auto-detected)
+3. Click "Create my company"
 
-### As Admin
-- [ ] Create users (manager, employee)
-- [ ] Create approval rules
-- [ ] View all expenses
-- [ ] Update company settings
+You're now logged in as an Admin! 🎉
 
-### As Manager
-- [ ] Submit expense
-- [ ] Approve team member's expense
-- [ ] View pending approvals
+## What's Next?
 
-### As Employee
-- [ ] Submit expense
-- [ ] View my expenses
-- [ ] Check expense status
-- [ ] See approval history
+### Add Team Members
+1. Go to Dashboard → Admin tab
+2. Click "Add User" button
+3. Create employees, managers, and other roles
 
-## Troubleshooting
+### Configure Approval Workflow
+1. In Admin Dashboard, click "Edit Rules"
+2. Set approval percentage (e.g., 0.6 for 60%)
+3. Enable/disable CFO override and hybrid mode
 
-### "Failed to load expenses"
-- Check that database migration ran successfully
-- Verify user is assigned to a company
-- Check browser console for errors
+### Submit Your First Expense
+1. Switch to Employee tab
+2. Fill in expense details
+3. Upload a receipt (optional)
+4. Click "Submit expense"
 
-### "Not authorized to approve"
-- Ensure you're the current approver in sequence
-- Check approval rules are configured correctly
+### Approve Expenses (Manager/Admin)
+1. Go to Manager tab
+2. Review pending expenses
+3. Click "Approve" or "Reject"
 
-### "User not found"
-- Verify user exists in both auth.users and users tables
-- Check company_id is set correctly
+## Common Issues
 
-## Next Steps
+### Database Connection Error
+- Ensure PostgreSQL is running
+- Check DATABASE_URL in `.env`
+- Verify database exists
 
-1. Explore currency conversion with different currencies
-2. Create complex approval rules
-3. Test the full approval workflow
-4. Add more team members
-5. Configure company settings
+### Port Already in Use
+- Change PORT in `.env` to another port (e.g., 3000)
+- Or stop the process using port 8080
 
-## Demo Credentials (After Setup)
+### Module Not Found Errors
+- Run `pnpm install` again
+- Delete `node_modules` and `pnpm-lock.yaml`, then reinstall
 
-Admin Account:
-- Email: [Your signup email]
-- Password: [Your signup password]
-- Role: Admin
-- Can: Everything
+## Demo Credentials
 
-You can create additional test accounts:
-- manager@test.com (Manager role)
-- employee@test.com (Employee role)
+After signup, the system automatically creates demo users:
 
-## Support
+- **Manager**: manager@example.com
+- **Employee**: employee@example.com
+- Password: (same as admin password you set)
 
-Check README.md for detailed documentation including:
-- Complete feature list
-- API documentation
-- Security model
-- Advanced configurations
+## Production Deployment
+
+```bash
+# Build the application
+pnpm build
+
+# Start production server
+pnpm start
+```
+
+## Need Help?
+
+- Check the main [README.md](./README.md) for detailed documentation
+- Review API endpoints and features
+- Open an issue if you encounter problems
+
+---
+
+Happy expense tracking! 🚀

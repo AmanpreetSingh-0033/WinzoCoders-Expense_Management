@@ -1,232 +1,317 @@
-# ExpenseFlow - Complete Expense Management System
+# Expence Flow - Modern Expense Management System
 
-A full-stack expense management application built with React, Vite, and Supabase. Features include role-based access control, multi-level approval workflows, currency conversion, and conditional approval rules.
+A full-stack expense management application with role-based dashboards, multi-level approval workflows, currency conversion, and OCR receipt processing.
 
-## Features
+## 🚀 Features
 
 ### Core Functionality
-- **User Authentication**: Secure JWT-based authentication with Supabase Auth
-- **Role-Based Access Control**: Three roles (Admin, Manager, Employee) with different permissions
-- **Expense Submission**: Employees can submit expenses with multiple currencies
-- **Automatic Currency Conversion**: Real-time conversion to company default currency
-- **Multi-Level Approval Workflows**: Sequential approval processes with customizable rules
-- **Conditional Approval Rules**: Percentage-based, specific approver, and hybrid rules
-- **Approval History**: Complete audit trail for all expense actions
-- **Manager-First Approval**: Optional flag to require manager approval first
+- **Role-Based Access Control**: Admin, Manager, Finance, Director, CFO, and Employee roles
+- **Multi-Level Approval Workflows**: Configurable approval chains (Manager → Finance → Director)
+- **Currency Conversion**: Automatic conversion using Exchange Rate API
+- **Receipt Upload**: Support for images and PDFs with OCR auto-fill
+- **Real-Time Analytics**: Charts and dashboards with expense insights
+- **User Management**: Admin panel for creating and managing team members
 
-### User Roles
+### Authentication & Security
+- JWT-based authentication with bcrypt password hashing
+- Role-based route protection
+- Secure file uploads with validation
 
-#### Admin
-- Full system access
-- Create/manage users
-- Configure approval rules
-- View all expenses
-- Override approvals
-- Update company settings
+### API Integrations
+- **REST Countries API**: Auto-detect company currency based on country
+- **Exchange Rate API**: Real-time currency conversion for expenses
 
-#### Manager
-- View team expenses
-- Approve/reject expenses in approval queue
-- Submit own expenses
-- View pending approvals
-
-#### Employee
-- Submit expense claims
-- View own expense history
-- Track expense status
-- View approval history
-
-## Tech Stack
+## 📋 Tech Stack
 
 ### Frontend
-- **React 18** - UI framework
-- **Vite** - Build tool and dev server
-- **React Router** - Client-side routing
-- **Supabase JS Client** - Backend integration
+- React 18 + TypeScript
+- Vite for blazing-fast development
+- TailwindCSS 3 + shadcn/ui components
+- React Router 6 (SPA mode)
+- Recharts for data visualization
+- React Query for API state management
 
 ### Backend
-- **Supabase** - Backend as a Service
-  - PostgreSQL database
-  - Row Level Security (RLS)
-  - Real-time subscriptions
-  - Authentication
+- Node.js + Express
+- TypeScript
+- JWT authentication
+- Multer for file uploads
+- Bcrypt for password hashing
 
-### External Services
-- **Exchange Rate API** - Free currency conversion (exchangerate-api.com)
+### Database
+- PostgreSQL
+- Prisma ORM
 
-## Setup Instructions
+## 🛠️ Installation
 
 ### Prerequisites
-- Node.js 16+ and npm
-- Supabase account (configured and ready)
+- Node.js 18+ and pnpm
+- PostgreSQL database
 
-### 1. Install Dependencies
+### Setup Steps
+
+1. **Clone and install dependencies**
 ```bash
-npm install
+git clone <repository-url>
+cd oddo
+pnpm install
 ```
 
-### 2. Environment Variables
+2. **Configure environment variables**
 
-The `.env` file is already configured with Supabase credentials:
+Copy `.env.example` to `.env` and update with your values:
 
 ```env
-VITE_SUPABASE_URL=https://xyfdhbwevbnhldzhkntu.supabase.co
-VITE_SUPABASE_ANON_KEY=<your-anon-key>
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/expense_db?schema=public"
+
+# JWT Authentication
+JWT_SECRET="your-super-secret-jwt-key-change-in-production"
+
+# Server
+PORT=8080
 ```
 
-### 3. Database Setup
+3. **Set up the database**
 
-Run the database migration SQL in your Supabase SQL Editor:
-
-```sql
--- See the complete SQL schema in the migration that needs to be applied
--- Create tables: companies, users, expenses, approval_rules, approval_history
--- Enable Row Level Security on all tables
--- Create RLS policies for role-based access
-```
-
-### 4. Start Development Server
 ```bash
-npm run dev
+# Generate Prisma client
+pnpm db:generate
+
+# Push schema to database (for development)
+pnpm db:push
+
+# OR run migrations (for production)
+pnpm db:migrate
 ```
 
-The app will be available at `http://localhost:5173`
+4. **Start development server**
 
-### 5. Build for Production
 ```bash
-npm run build
+pnpm dev
 ```
 
-## First Time Setup
+The application will be available at `http://localhost:8080`
 
-### Sign Up Flow
-1. Navigate to `/signup`
-2. Enter your details:
-   - Name
-   - Email
-   - Company Name
-   - Country (this automatically sets the default currency)
-   - Password
-3. Click "Create Account"
-4. You'll be logged in as an Admin and redirected to the dashboard
+## 📁 Project Structure
 
-### Creating Users (Admin Only)
-1. Go to "Manage Users" in the admin section
-2. Click "Add User"
-3. Fill in user details:
-   - Name, Email, Password
-   - Role (Admin, Manager, Employee)
-   - Manager (optional - select from existing managers)
-   - Check "Manager must approve first" if needed
-4. Click "Create User"
+```
+├── client/                 # React frontend
+│   ├── pages/             # Route components
+│   │   ├── Index.tsx      # Landing page
+│   │   ├── Login.tsx      # Login page
+│   │   ├── Signup.tsx     # Company signup
+│   │   └── Dashboard.tsx  # Role-based dashboards
+│   ├── components/        # Reusable UI components
+│   ├── hooks/             # Custom React hooks
+│   └── lib/               # Utilities
+│
+├── server/                # Express backend
+│   ├── routes/            # API route handlers
+│   │   ├── auth.ts        # Authentication endpoints
+│   │   ├── expenses.ts    # Expense CRUD
+│   │   ├── users.ts       # User management
+│   │   └── workflows.ts   # Workflow configuration
+│   ├── middleware/        # Express middleware
+│   ├── utils/             # Server utilities
+│   ├── prisma/            # Prisma schema
+│   └── index.ts           # Server entry point
+│
+└── shared/                # Shared types between client & server
+    └── api.ts             # TypeScript interfaces
+```
 
-### Configuring Approval Rules (Admin Only)
-1. Go to "Approval Rules" in the admin section
-2. Click "Add Rule"
-3. Configure:
-   - Rule name
-   - Amount threshold (rule applies to expenses above this)
-   - Percentage threshold (optional - auto-approve at X%)
-   - Approval sequence (ordered list of approvers)
-   - Hybrid rule (optional - OR logic for conditions)
-4. Click "Create Rule"
+## 🔐 User Roles & Permissions
 
-## Usage Guide
+| Role | Permissions |
+|------|-------------|
+| **Admin** | Full access: manage users, configure workflows, view all expenses |
+| **Manager** | Approve/reject team expenses, view team reports |
+| **Finance** | Approve expenses in workflow chain, view financial reports |
+| **Director** | Final approval in multi-level workflows |
+| **CFO** | Override approval (if enabled in workflow rules) |
+| **Employee** | Submit expenses, track own expense history |
 
-### Submitting an Expense (Employee)
-1. Go to "Submit Expense"
-2. Fill in:
-   - Title (e.g., "Client Dinner")
-   - Description (optional)
-   - Amount and Currency
-   - Category
-   - Date
-3. Click "Submit Expense"
-4. Expense enters approval workflow automatically
+## 🔄 Approval Workflow
 
-### Approving Expenses (Manager/Admin)
-1. Go to "Approvals"
-2. See list of expenses waiting for your approval
-3. Click "Review" on an expense
-4. View all details including:
-   - Submitter information
-   - Amount (converted to company currency)
-   - Previous approvals (if any)
-5. Add a comment (optional for approve, required for reject)
-6. Click "Approve" or "Reject"
+### Default Flow
+1. Employee submits expense
+2. Manager reviews and approves/rejects
+3. Finance team reviews (if configured)
+4. Director provides final approval (if configured)
 
-### Tracking Expenses (Employee)
-1. Go to "My Expenses"
-2. Filter by status (All, Pending, Approved, Rejected)
-3. Click "View" to see detailed information
-4. See approval history and comments
+### Configurable Rules
+- **Percentage Rule**: Require X% of approvers to approve (e.g., 60%)
+- **CFO Override**: CFO approval auto-approves entire expense
+- **Hybrid Mode**: Either percentage OR CFO override triggers approval
 
-## Approval Workflow Logic
-
-### Sequential Approval
-- Expenses move through approvers one by one
-- Current approver must act before moving to next
-- If rejected at any stage, workflow stops
-
-### Manager-First Approval
-- If employee has `is_manager_approver` enabled
-- Their manager must approve first
-- Then moves to configured approval sequence
-
-### Conditional Rules
-
-#### Percentage Rule
-- Example: 60% threshold
-- If 60% of approvers approve, expense auto-approves
-- Remaining approvers don't need to act
-
-#### Specific Approver Rule
-- Example: CFO as specific approver
-- If CFO approves, expense auto-approves
-- Bypasses other approvers
-
-#### Hybrid Rule
-- Combines percentage AND specific approver
-- Either condition triggers auto-approval
-- Provides flexibility
-
-## Security
-
-### Row-Level Security (RLS)
-All tables have RLS enabled with policies:
-
-- **Companies**: Users can only view/edit their own company
-- **Users**: Users can view users in their company; only admins can create/edit/delete
-- **Expenses**: Users can view company expenses; only submitters can create
-- **Approval Rules**: Company-scoped; only admins can manage
-- **Approval History**: Read-only for company members
+## 🌐 API Endpoints
 
 ### Authentication
-- JWT-based authentication via Supabase
-- Secure password hashing
-- Protected routes requiring authentication
-- Role-based access control on routes and components
+- `POST /api/auth/signup` - Create company and admin user
+- `POST /api/auth/login` - User login
+- `GET /api/me` - Get current user info
 
-## Development
+### Users (Admin only)
+- `GET /api/users` - List all company users
+- `GET /api/users/:id` - Get user details
+- `POST /api/users` - Create new user
+- `PUT /api/users/:id` - Update user
+- `DELETE /api/users/:id` - Delete user
+
+### Expenses
+- `GET /api/expenses` - List expenses (role-filtered)
+- `POST /api/expenses` - Submit new expense (with optional receipt upload)
+- `POST /api/expenses/:id/decision` - Approve/reject expense
+
+### Workflows (Admin only)
+- `GET /api/workflows` - Get workflow rules
+- `PUT /api/workflows` - Update workflow rules
+
+### Reference Data
+- `GET /api/countries` - List countries with currencies
+- `GET /api/rates/:base` - Get exchange rates for base currency
+
+## 📊 Dashboard Features
+
+### Employee Dashboard
+- Submit expenses with receipt upload
+- OCR auto-fill from receipt text
+- View expense history with status tracking
+- Export expenses to CSV
+
+### Manager Dashboard
+- View pending approvals
+- Approve/reject with comments
+- Team expense overview
+
+### Admin Dashboard
+- **Analytics**: Expense charts by category and status
+- **User Management**: Create/edit users, assign roles and managers
+- **Workflow Configuration**: Set approval rules and thresholds
+- **Company Overview**: View organization details
+
+## 🎨 UI/UX Features
+
+- **Dark/Light Theme**: Toggle between themes
+- **Responsive Design**: Mobile-friendly layouts
+- **Modern UI**: shadcn/ui components with TailwindCSS
+- **Real-time Notifications**: Toast notifications for user actions
+- **Data Visualization**: Interactive charts with Recharts
+
+## 🚀 Deployment
+
+### Build for Production
+
+```bash
+pnpm build
+```
+
+This creates:
+- `dist/spa/` - Optimized frontend bundle
+- `dist/server/` - Compiled server code
+
+### Start Production Server
+
+```bash
+pnpm start
+```
+
+### Environment Variables for Production
+
+Ensure these are set in your production environment:
+- `DATABASE_URL` - PostgreSQL connection string
+- `JWT_SECRET` - Strong secret key for JWT signing
+- `PORT` - Server port (default: 8080)
+
+## 🧪 Development
 
 ### Available Scripts
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
 
-## Database Schema
+```bash
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm start        # Start production server
+pnpm typecheck    # Run TypeScript type checking
+pnpm test         # Run tests
+pnpm db:generate  # Generate Prisma client
+pnpm db:push      # Push schema to database
+pnpm db:migrate   # Run database migrations
+pnpm db:studio    # Open Prisma Studio
+```
 
-The application uses the following tables:
+### Database Management
 
-- **companies** - Company information and settings
-- **users** - User profiles with roles and manager relationships
-- **expenses** - Expense claims with approval tracking
-- **approval_rules** - Configurable approval workflows
-- **approval_history** - Complete audit trail of all actions
+**Prisma Studio** provides a visual interface for your database:
+```bash
+pnpm db:studio
+```
 
-All tables are protected with Row Level Security policies to ensure data privacy and security.
+## 📝 First-Time Setup Flow
 
-## License
+1. Visit the application homepage
+2. Click "Get Started" or "Create your company"
+3. Fill in:
+   - Your name
+   - Company name
+   - Work email
+   - Password
+   - Country (currency auto-detected)
+4. You're automatically logged in as Admin
+5. Add team members via Admin Dashboard
+6. Configure approval workflows
+7. Team members can start submitting expenses
 
-MIT
+## 🔧 Configuration
+
+### Workflow Rules
+
+Admins can configure approval logic:
+
+```typescript
+{
+  percentage: 0.6,        // 60% of approvers must approve
+  cfoOverride: true,      // CFO can auto-approve
+  hybrid: true            // Use percentage OR CFO override
+}
+```
+
+### File Upload Limits
+
+- Max file size: 5MB
+- Allowed types: JPEG, PNG, GIF, PDF
+- Files stored in `server/uploads/`
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and type checking
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - feel free to use this project for personal or commercial purposes.
+
+## 🆘 Support
+
+For issues or questions:
+- Create an issue in the repository
+- Check existing documentation
+- Review the code comments
+
+## 🎯 Roadmap
+
+- [ ] Email notifications for approvals
+- [ ] Advanced OCR with Tesseract.js
+- [ ] Expense categories management
+- [ ] Budget tracking and alerts
+- [ ] Mobile app (React Native)
+- [ ] Advanced reporting and exports
+- [ ] Multi-currency support for company base
+- [ ] Audit logs and activity tracking
+
+---
+
+Built with ❤️ using React, Express, PostgreSQL, and modern web technologies.
